@@ -21,6 +21,7 @@ Provides a way to sign a JSON Web Token using a secret (with the HMAC algorithm)
 ### Optional
 
 - `algorithm` (String) Signing algorithm to use. Defaults to `HS512`. Supported algorithms are `HS256`, `HS384`, `HS512`.
+- `secret_encoding` (String) Secret encoding method. Defaults to `raw`. Supported encodings are `raw`, `base64`, `hex`.
 
 ### Read-Only
 

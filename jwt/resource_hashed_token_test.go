@@ -9,24 +9,27 @@ import (
 )
 
 func TestHashedJWT(t *testing.T) {
+	t.Setenv("TF_ACC", "1")
+
 	r.Test(t, r.TestCase{
 		Providers: testProviders,
 		Steps: []r.TestStep{
-			r.TestStep{
+			{
 				Config: `
-                    resource "jwt_hashed_token" "example" {
-						algorithm = "HS512"
-						secret    = "notthegreatestkey"
+resource "jwt_hashed_token" "example" {
+	algorithm = "HS512"
+	secret    = "notthegreatestkey"
 
-						claims = {
-							a = "b"
-						}
-					}
+	claims_json = jsonencode({
+		a = "b"
+	})
+}
 
-					output "example_token" {
-						value = "${jwt_hashed_token.example.token}"
-					}
-                `,
+output "example_token" {
+	sensitive = true
+	value = "${jwt_hashed_token.example.token}"
+}
+`,
 				Check: func(s *terraform.State) error {
 					gotTokenUntyped := s.RootModule().Outputs["example_token"].Value
 					gotToken, ok := gotTokenUntyped.(string)
@@ -35,6 +38,34 @@ func TestHashedJWT(t *testing.T) {
 					}
 
 					if gotToken != "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhIjoiYiJ9.cl5DXDjjNUqWzYcsSOvljSs9skgxV7xrxXr6IFXdN_FEYe7qOw-IsWBQBAyB1Ra3kfngwT9h2VK1YuT00Qp-rg" {
+						return fmt.Errorf("Token miscalculated.")
+					}
+
+					return nil
+				},
+			},
+			{
+				Config: `
+resource "jwt_hashed_token" "base64_example" {
+	algorithm       = "HS512"
+	secret          = "ZX92vEaSMKXYAIF127SewQ=="
+	secret_encoding = "base64"
+
+	claims_json = jsonencode({
+		a = "b"
+	})
+}
+
+output "base64_example_token" {
+	sensitive = true
+	value     = "${jwt_hashed_token.base64_example.token}"
+}
+`,
+				Check: func(s *terraform.State) error {
+					gotTokenUntyped := s.RootModule().Outputs["base64_example_token"].Value
+					gotToken, _ := gotTokenUntyped.(string)
+
+					if gotToken != "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhIjoiYiJ9.zQB7DzBc37wOq-tsyDer8EysaWNEwA8rYq9fXFgWO9giMIkRwdCUYTUO27kY3nYFyDYRnVBMfOOYJ7X-l7LEIA" {
 						return fmt.Errorf("Token miscalculated.")
 					}
 
