@@ -1,10 +1,12 @@
 package jwt
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 
-	jwtgen "github.com/dgrijalva/jwt-go"
+	jwtgen "github.com/golang-jwt/jwt/v5"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -29,6 +31,14 @@ func resourceHashedToken() *schema.Resource {
 				Description: "HMAC secret to sign the JWT with.",
 				ForceNew:    true,
 				Sensitive:   true,
+			},
+			"secret_encoding": &schema.Schema{
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "raw",
+				Description:  "Secret encoding type. Defaults to `raw`. Supported algorithms are `raw`, `base64`, `hex`.",
+				ValidateFunc: validateEncodingtype,
+				ForceNew:     true,
 			},
 			"claims_json": &schema.Schema{
 				Type:        schema.TypeString,
@@ -57,9 +67,25 @@ func createHashedJWT(d *schema.ResourceData, meta interface{}) (err error) {
 
 	token := jwtgen.NewWithClaims(signer, jwtgen.MapClaims(jsonClaims))
 
-	secret := d.Get("secret").(string)
+	secret_encoding := d.Get("secret_encoding").(string)
+	_secret := d.Get("secret").(string)
+	secret := []byte{}
 
-	hashedToken, err := token.SignedString([]byte(secret))
+	if secret_encoding == "base64" {
+		secret, err = base64.StdEncoding.DecodeString(_secret)
+		if err != nil {
+			return err
+		}
+	} else if secret_encoding == "hex" {
+		secret, err = hex.DecodeString(_secret)
+		if err != nil {
+			return err
+		}
+	} else {
+		secret = []byte(_secret)
+	}
+
+	hashedToken, err := token.SignedString(secret)
 	if err != nil {
 		return err
 	}
@@ -91,6 +117,19 @@ func validateHashingAlgorithm(iAlg interface{}, k string) (warnings []string, er
 	}
 	if _, isHMAC := method.(*jwtgen.SigningMethodHMAC); !isHMAC {
 		errs = append(errs, fmt.Errorf("For RSA/ECDSA signing, please use the jwt_signed_token resource."))
+	}
+	return
+}
+
+func validateEncodingtype(iEnc interface{}, k string) (warnings []string, errs []error) {
+	enc, ok := iEnc.(string)
+	if !ok {
+		errs = append(errs, fmt.Errorf("%s must be a string.", k))
+		return
+	}
+	if enc != "raw" && enc != "base64" && enc != "hex" {
+		errs = append(errs, fmt.Errorf("%s is not a supported encoding type. Choices are raw, base64, hex.", enc))
+		return
 	}
 	return
 }

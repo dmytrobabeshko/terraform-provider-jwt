@@ -1,9 +1,9 @@
-module github.com/camptocamp/terraform-provider-jwt
+module github.com/geektheripper/terraform-provider-jwt
 
 go 1.18
 
 require (
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/hashicorp/terraform-plugin-docs v0.10.1
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.17.0
 )

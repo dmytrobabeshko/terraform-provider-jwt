@@ -16,7 +16,7 @@ This provider provides a way to generate a valid JSON Web Token to be used on yo
 terraform {
   required_providers {
     jwt = {
-      source = "camptocamp/jwt"
+      source = "geektheripper/jwt"
       version = "1.1.0"
     }
   }
