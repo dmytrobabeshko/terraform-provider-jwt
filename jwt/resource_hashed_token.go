@@ -46,6 +46,12 @@ func resourceHashedToken() *schema.Resource {
 				Description: "The token's claims, as a JSON document.",
 				ForceNew:    true,
 			},
+			"kid": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The kid claim in token header",
+				ForceNew:    true,
+			},
 			"token": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "The JWT token, as a string.",
@@ -66,6 +72,9 @@ func createHashedJWT(d *schema.ResourceData, meta interface{}) (err error) {
 	json.Unmarshal([]byte(claims), &jsonClaims)
 
 	token := jwtgen.NewWithClaims(signer, jwtgen.MapClaims(jsonClaims))
+	if secret := d.Get("kid").(string); secret != "" {
+		token.Header["kid"] = d.Get("kid")
+	}
 
 	secret_encoding := d.Get("secret_encoding").(string)
 	_secret := d.Get("secret").(string)

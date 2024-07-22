@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/geektheripper/terraform-provider-jwt/jwt"
+	"github.com/dmytrobabeshko/terraform-provider-jwt/jwt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
