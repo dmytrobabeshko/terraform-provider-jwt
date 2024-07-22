@@ -19,7 +19,7 @@ func TestHashedJWT(t *testing.T) {
 resource "jwt_hashed_token" "example" {
 	algorithm = "HS512"
 	secret    = "notthegreatestkey"
-
+	kid = "some kid"
 	claims_json = jsonencode({
 		a = "b"
 	})
@@ -37,7 +37,7 @@ output "example_token" {
 						return fmt.Errorf("Output for \"example_token\" is not a string.")
 					}
 
-					if gotToken != "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhIjoiYiJ9.cl5DXDjjNUqWzYcsSOvljSs9skgxV7xrxXr6IFXdN_FEYe7qOw-IsWBQBAyB1Ra3kfngwT9h2VK1YuT00Qp-rg" {
+					if gotToken != "eyJhbGciOiJIUzUxMiIsImtpZCI6InNvbWUga2lkIiwidHlwIjoiSldUIn0.eyJhIjoiYiJ9.Kki39GFURveoP2Qgumt14JeAvBrJSnatHkB-sANL_Zo-v9xdUtKEYeaU3rhFr8rP41MILEa9KvmPTfnJ6DYK0g" {
 						return fmt.Errorf("Token miscalculated.")
 					}
 
